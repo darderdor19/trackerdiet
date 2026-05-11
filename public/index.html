@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="LebihFit Tracker - Cyberpunk AI-Powered Fitness & Nutrition Tracker">
+  <title>LEBIHFIT TRACKER // CYBERPUNK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body class="cyber-theme">
+  <!-- AUTH OVERLAY -->
+  <div id="auth-overlay" class="auth-overlay">
+    <div class="auth-card">
+      <div class="glitch-wrapper">
+        <h1 class="cyber-title large" data-text="LEBIHFIT ACCESS">LEBIHFIT ACCESS</h1>
+      </div>
+      
+      <!-- Step 1: Email Input -->
+      <div id="auth-step-email" class="auth-step">
+        <p class="auth-subtitle">IDENTIFIKASI DIRI LU, CYBER-ATHLETE</p>
+        <div class="cyber-input-group">
+          <label class="cyber-label">EMAIL</label>
+          <input type="email" id="login-email" class="cyber-input" placeholder="user@cyber.fit">
+        </div>
+        <button class="cyber-btn primary full" onclick="sendOTP()">KIRIM KODE VERIFIKASI</button>
+      </div>
+
+      <!-- Step 2: OTP Input -->
+      <div id="auth-step-otp" class="auth-step hidden">
+        <p class="auth-subtitle">KODE TELAH DIKIRIM KE EMAIL LU</p>
+        <div class="otp-container">
+          <input type="text" maxlength="1" class="otp-input" id="otp-1" onkeyup="moveFocus(this, 'otp-2')">
+          <input type="text" id="otp-2" maxlength="1" class="otp-input" onkeyup="moveFocus(this, 'otp-3')">
+          <input type="text" id="otp-3" maxlength="1" class="otp-input" onkeyup="moveFocus(this, 'otp-4')">
+          <input type="text" id="otp-4" maxlength="1" class="otp-input" onkeyup="moveFocus(this, 'otp-5')">
+          <input type="text" id="otp-5" maxlength="1" class="otp-input" onkeyup="moveFocus(this, 'otp-6')">
+          <input type="text" id="otp-6" maxlength="1" class="otp-input">
+        </div>
+        <button class="cyber-btn primary full" onclick="verifyOTPAndLogin()">VERIFIKASI & AKSES</button>
+        <button class="cyber-btn secondary small" style="margin-top:1rem;" onclick="backToEmail()">GANTI EMAIL</button>
+      </div>
+
+      <div id="auth-loading" class="auth-loading hidden">
+        <div class="scanner"></div>
+        <p>MEMPROSES DATA...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCAN LINE OVERLAY -->
+  <div class="scanline"></div>
+
+  <!-- MOBILE HAMBURGER -->
+  <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+
+  <!-- SIDEBAR OVERLAY (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- APP LAYOUT -->
+  <div class="app-layout hidden" id="app-content">
+
+    <!-- LEFT SIDEBAR NAVIGATION -->
+    <aside class="cyber-sidebar" id="mainSidebar">
+      <div class="sidebar-brand">
+        <span class="glitch-text" data-text="LEBIHFIT">LEBIHFIT</span>
+        <span class="brand-sub">TRACKER v2.0</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="sidebar-btn active" data-tab="dashboard" id="nav-dashboard">
+          <span class="sidebar-icon">◉</span>
+          <span class="sidebar-label">DASHBOARD</span>
+        </button>
+        <button class="sidebar-btn" data-tab="food" id="nav-food">
+          <span class="sidebar-icon">⬡</span>
+          <span class="sidebar-label">KALORI</span>
+        </button>
+        <button class="sidebar-btn" data-tab="workout" id="nav-workout">
+          <span class="sidebar-icon">⚡</span>
+          <span class="sidebar-label">WORKOUT</span>
+        </button>
+        <button class="sidebar-btn" data-tab="bodyscan" id="nav-bodyscan">
+          <span class="sidebar-icon">◐</span>
+          <span class="sidebar-label">BODY SCAN</span>
+        </button>
+        <button class="sidebar-btn" data-tab="profil" id="nav-profil">
+          <span class="sidebar-icon">☰</span>
+          <span class="sidebar-label">PROFIL</span>
+        </button>
+        <button class="sidebar-btn" data-tab="history" id="nav-history">
+          <span class="sidebar-icon">⧖</span>
+          <span class="sidebar-label">HISTORY</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-clock" id="navTime"></div>
+        <div class="sidebar-version">LEBIHFIT ENGINE v2.0</div>
+        <button class="cyber-btn secondary small full" style="margin-top: 10px; border-color: rgba(255,51,85,0.3); color: #ff3355;" onclick="logout()">LOGOUT</button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- ======== DASHBOARD TAB ======== -->
+      <section class="tab-content active" id="tab-dashboard">
+        <div class="section-header">
+          <h1 class="cyber-title">SYSTEM <span class="highlight">DASHBOARD</span></h1>
+          <div class="period-selector">
+            <button class="period-btn active" data-days="7">7D</button>
+            <button class="period-btn" data-days="30">1M</button>
+            <button class="period-btn" data-days="90">3M</button>
+            <button class="period-btn" data-days="180">6M</button>
+            <button class="period-btn" data-days="365">1Y</button>
+          </div>
+        </div>
+
+        <!-- STAT CARDS -->
+        <div class="stats-grid">
+          <div class="stat-card neon-cyan">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-value" id="stat-calories">0</div>
+            <div class="stat-label">TOTAL KALORI</div>
+            <div class="stat-sub" id="stat-avg-cal">avg: 0/hari</div>
+          </div>
+          <div class="stat-card neon-magenta">
+            <div class="stat-icon">💪</div>
+            <div class="stat-value" id="stat-protein">0g</div>
+            <div class="stat-label">TOTAL PROTEIN</div>
+            <div class="stat-sub" id="stat-fat-carb">F: 0g | C: 0g</div>
+          </div>
+          <div class="stat-card neon-yellow">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-value" id="stat-workouts">0</div>
+            <div class="stat-label">TOTAL WORKOUT</div>
+            <div class="stat-sub" id="stat-workout-dur">0 menit total</div>
+          </div>
+          <div class="stat-card neon-green">
+            <div class="stat-icon">🔋</div>
+            <div class="stat-value" id="stat-burned">0</div>
+            <div class="stat-label">KALORI TERBAKAR</div>
+            <div class="stat-sub" id="stat-avg-burn">avg: 0/sesi</div>
+          </div>
+        </div>
+
+        <!-- CHARTS -->
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3 class="chart-title">INTAKE KALORI HARIAN</h3>
+            <canvas id="caloriesChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3 class="chart-title">DURASI WORKOUT</h3>
+            <canvas id="workoutChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3 class="chart-title">DISTRIBUSI MAKRO</h3>
+            <canvas id="macroChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3 class="chart-title">TIPE WORKOUT</h3>
+            <canvas id="workoutTypeChart"></canvas>
+          </div>
+        </div>
+
+        <!-- PROFIL SUMMARY -->
+        <div class="profil-dashboard-panel" id="profilDashboardPanel" style="display:none;">
+          <h3 class="chart-title">📊 TARGET NUTRISI HARIAN (PROFIL TERBARU)</h3>
+          <div class="profil-dashboard-content" id="profilDashboardContent"></div>
+        </div>
+
+        <!-- TODAY ACTIVITY -->
+        <div class="today-dashboard-panel">
+          <h3 class="chart-title">🕒 RIWAYAT AKTIVITAS HARI INI</h3>
+          <div id="todayDashboardActivity" class="history-list">
+            <div class="empty-state">Belum ada aktivitas hari ini.</div>
+          </div>
+        </div>
+
+        <!-- DAILY AI RECAP -->
+        <div class="recap-dashboard-panel" id="recapDashboardPanel">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <h3 class="chart-title">🤖 AI DAILY RECAP</h3>
+            <button class="cyber-btn small" onclick="generateRecap()">RE-GENERATE</button>
+          </div>
+          <div class="recap-content" id="recapDashboardContent">
+            <div class="empty-state">Belum ada ringkasan harian. AI akan otomatis membuat ringkasan di akhir hari atau klik tombol di atas.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== FOOD/KALORI TAB ======== -->
+      <section class="tab-content" id="tab-food">
+        <div class="section-header">
+          <h1 class="cyber-title">KALORI <span class="highlight">TRACKER</span></h1>
+        </div>
+
+        <div class="input-mode-toggle">
+          <button class="mode-btn active" id="mode-manual" onclick="setFoodMode('manual')">
+            <span>⌨</span> INPUT MANUAL
+          </button>
+          <button class="mode-btn" id="mode-photo" onclick="setFoodMode('photo')">
+            <span>📷</span> UPLOAD FOTO
+          </button>
+        </div>
+
+        <!-- Manual Input -->
+        <div class="input-panel" id="panel-manual">
+          <div class="cyber-input-group">
+            <label class="cyber-label">DESKRIPSI MAKANAN</label>
+            <textarea id="food-description" class="cyber-textarea" placeholder="Contoh: Ayam goreng 500 gram, nasi putih 200 gram, sayur bayam 100 gram..." rows="4"></textarea>
+          </div>
+          <button class="cyber-btn primary" id="btn-analyze-food" onclick="submitManualFood()">
+            <span class="btn-glitch">▶ ANALISIS AI</span>
+          </button>
+        </div>
+
+        <!-- Photo Input -->
+        <div class="input-panel hidden" id="panel-photo">
+          <div class="upload-zone" id="food-dropzone">
+            <input type="file" id="food-image-input" accept="image/*" hidden>
+            <div class="upload-icon">📸</div>
+            <p class="upload-text">KLIK ATAU DROP FOTO MAKANAN</p>
+            <p class="upload-sub">JPG, PNG, WebP (max 10MB)</p>
+            <img id="food-preview" class="upload-preview hidden" alt="preview">
+          </div>
+          <button class="cyber-btn primary" id="btn-analyze-photo" onclick="submitPhotoFood()">
+            <span class="btn-glitch">▶ ANALISIS FOTO AI</span>
+          </button>
+        </div>
+
+        <!-- Loading -->
+        <div class="ai-loading hidden" id="food-loading">
+          <div class="loading-spinner"></div>
+          <p class="loading-text">AI SEDANG MENGANALISIS...</p>
+        </div>
+
+        <!-- Results -->
+        <div class="result-panel hidden" id="food-result">
+          <h3 class="result-title">⬡ HASIL ANALISIS</h3>
+          <div id="food-items-list" class="food-items-list"></div>
+          <div class="nutrition-grid" id="nutrition-grid"></div>
+          <div class="ai-summary" id="food-summary"></div>
+        </div>
+
+        <!-- Today's Meals -->
+        <div class="today-section">
+          <h3 class="section-sub-title">MAKANAN HARI INI</h3>
+          <div id="today-meals" class="history-list"></div>
+        </div>
+      </section>
+
+      <!-- ======== WORKOUT TAB ======== -->
+      <section class="tab-content" id="tab-workout">
+        <div class="section-header">
+          <h1 class="cyber-title">WORKOUT <span class="highlight">LOGGER</span></h1>
+        </div>
+
+        <div class="workout-type-selector">
+          <button class="type-btn active" data-type="gym" onclick="setWorkoutType('gym')">🏋️ GYM</button>
+          <button class="type-btn" data-type="workout" onclick="setWorkoutType('workout')">💪 WORKOUT</button>
+          <button class="type-btn" data-type="cardio" onclick="setWorkoutType('cardio')">🏃 CARDIO</button>
+        </div>
+
+        <div class="workout-form" id="workout-form">
+          <!-- Exercise list (dynamic) -->
+          <div id="exercise-list" class="exercise-list">
+            <div class="exercise-entry" data-index="0">
+              <div class="exercise-row">
+                <div class="cyber-input-group flex-2">
+                  <label class="cyber-label">GERAKAN</label>
+                  <input type="text" class="cyber-input exercise-name" placeholder="Bench Press, Squat, dll...">
+                </div>
+                <div class="cyber-input-group flex-1">
+                  <label class="cyber-label">SET</label>
+                  <input type="number" class="cyber-input exercise-sets" placeholder="3" min="1">
+                </div>
+                <div class="cyber-input-group flex-1">
+                  <label class="cyber-label">REPS</label>
+                  <input type="text" class="cyber-input exercise-reps" placeholder="8-12">
+                </div>
+                <div class="cyber-input-group flex-1">
+                  <label class="cyber-label">BEBAN (kg)</label>
+                  <input type="number" class="cyber-input exercise-weight" placeholder="50" min="0">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="cyber-btn secondary" onclick="addExerciseRow()">+ TAMBAH GERAKAN</button>
+
+          <!-- Cardio specific fields -->
+          <div id="cardio-fields" class="cardio-fields hidden">
+            <div class="exercise-row">
+              <div class="cyber-input-group flex-1">
+                <label class="cyber-label">JARAK (km)</label>
+                <input type="number" class="cyber-input" id="cardio-distance" placeholder="5" step="0.1">
+              </div>
+              <div class="cyber-input-group flex-1">
+                <label class="cyber-label">PACE (min/km)</label>
+                <input type="text" class="cyber-input" id="cardio-pace" placeholder="5:30">
+              </div>
+            </div>
+          </div>
+
+          <div class="exercise-row">
+            <div class="cyber-input-group flex-1">
+              <label class="cyber-label">DURASI TOTAL (menit)</label>
+              <input type="number" class="cyber-input" id="workout-duration" placeholder="60" min="1">
+            </div>
+            <div class="cyber-input-group flex-2">
+              <label class="cyber-label">CATATAN</label>
+              <input type="text" class="cyber-input" id="workout-notes" placeholder="Catatan tambahan...">
+            </div>
+          </div>
+
+          <button class="cyber-btn primary" onclick="submitWorkout()">
+            <span class="btn-glitch">▶ SIMPAN WORKOUT</span>
+          </button>
+        </div>
+
+        <div class="ai-loading hidden" id="workout-loading">
+          <div class="loading-spinner"></div>
+          <p class="loading-text">MENGHITUNG KALORI TERBAKAR...</p>
+        </div>
+
+        <div class="result-panel hidden" id="workout-result">
+          <h3 class="result-title">⚡ WORKOUT TERSIMPAN</h3>
+          <div id="workout-result-content"></div>
+        </div>
+
+        <div class="today-section">
+          <h3 class="section-sub-title">WORKOUT HARI INI</h3>
+          <div id="today-workouts" class="history-list"></div>
+        </div>
+      </section>
+
+      <!-- ======== BODY SCAN TAB ======== -->
+      <section class="tab-content" id="tab-bodyscan">
+        <div class="section-header">
+          <h1 class="cyber-title">BODY <span class="highlight">SCAN AI</span></h1>
+          <p class="section-desc">Upload foto tubuh untuk mendapat analisis AI tentang kondisi badan dan rekomendasi latihan/diet</p>
+        </div>
+
+        <div class="upload-zone large" id="body-dropzone">
+          <input type="file" id="body-image-input" accept="image/*" hidden>
+          <div class="upload-icon">🔬</div>
+          <p class="upload-text">UPLOAD FOTO TUBUH</p>
+          <p class="upload-sub">Pastikan foto terlihat jelas dengan pencahayaan yang baik</p>
+          <img id="body-preview" class="upload-preview hidden" alt="body preview">
+        </div>
+
+        <button class="cyber-btn primary" id="btn-body-scan" onclick="submitBodyScan()">
+          <span class="btn-glitch">▶ ANALISIS BODY SCAN</span>
+        </button>
+
+        <div class="ai-loading hidden" id="body-loading">
+          <div class="loading-spinner"></div>
+          <p class="loading-text">AI SEDANG MENGANALISIS TUBUH ANDA...</p>
+        </div>
+
+        <div class="result-panel hidden" id="body-result">
+          <h3 class="result-title">◐ BODY ANALYSIS REPORT</h3>
+          <div id="body-assessment" class="body-assessment"></div>
+          <div id="body-recommendations" class="body-recommendations"></div>
+          <div class="ai-summary" id="body-summary"></div>
+        </div>
+
+        <div class="today-section">
+          <h3 class="section-sub-title">SCAN HISTORY</h3>
+          <div id="body-scan-history" class="history-list"></div>
+        </div>
+      </section>
+
+      <!-- ======== HISTORY TAB ======== -->
+      <section class="tab-content" id="tab-history">
+        <div class="section-header">
+          <h1 class="cyber-title">DATA <span class="highlight">HISTORY</span></h1>
+        </div>
+
+        <div class="history-controls">
+          <div class="period-selector">
+            <button class="period-btn active" data-history-days="7">7 HARI</button>
+            <button class="period-btn" data-history-days="30">1 BULAN</button>
+            <button class="period-btn" data-history-days="90">3 BULAN</button>
+            <button class="period-btn" data-history-days="180">6 BULAN</button>
+            <button class="period-btn" data-history-days="365">12 BULAN</button>
+          </div>
+          <div class="custom-date-range">
+            <input type="date" class="cyber-input date-input" id="history-start">
+            <span class="date-separator">→</span>
+            <input type="date" class="cyber-input date-input" id="history-end">
+            <button class="cyber-btn small" onclick="loadCustomHistory()">FILTER</button>
+          </div>
+        </div>
+
+        <div class="history-type-tabs">
+          <button class="htab-btn active" data-htype="all" onclick="filterHistoryType('all')">SEMUA</button>
+          <button class="htab-btn" data-htype="meals" onclick="filterHistoryType('meals')">MAKANAN</button>
+          <button class="htab-btn" data-htype="workouts" onclick="filterHistoryType('workouts')">WORKOUT</button>
+          <button class="htab-btn" data-htype="scans" onclick="filterHistoryType('scans')">BODY SCAN</button>
+          <button class="htab-btn" data-htype="profil" onclick="filterHistoryType('profil')">PROFIL</button>
+        </div>
+
+        <div id="history-content" class="history-list"></div>
+      </section>
+
+      <!-- ======== PROFIL TAB ======== -->
+      <section class="tab-content" id="tab-profil">
+        <div class="section-header">
+          <h1 class="cyber-title">BODY <span class="highlight">PROFIL</span></h1>
+          <p class="section-desc">Masukkan data tubuh dan goals kamu, AI akan menghitung kebutuhan kalori & nutrisi harian</p>
+        </div>
+
+        <div class="profil-form">
+          <div class="profil-grid">
+            <div class="cyber-input-group">
+              <label class="cyber-label">BERAT BADAN (kg)</label>
+              <input type="number" class="cyber-input" id="profil-bb" placeholder="70" min="20" max="300" step="0.1">
+            </div>
+            <div class="cyber-input-group">
+              <label class="cyber-label">TINGGI BADAN (cm)</label>
+              <input type="number" class="cyber-input" id="profil-tb" placeholder="170" min="100" max="250">
+            </div>
+            <div class="cyber-input-group">
+              <label class="cyber-label">USIA (tahun)</label>
+              <input type="number" class="cyber-input" id="profil-usia" placeholder="25" min="10" max="100">
+            </div>
+            <div class="cyber-input-group">
+              <label class="cyber-label">JENIS KELAMIN</label>
+              <select class="cyber-input" id="profil-gender">
+                <option value="male">Laki-laki</option>
+                <option value="female">Perempuan</option>
+              </select>
+            </div>
+            <div class="cyber-input-group">
+              <label class="cyber-label">LEVEL AKTIVITAS</label>
+              <select class="cyber-input" id="profil-activity">
+                <option value="sedentary">Sedentary (jarang olahraga)</option>
+                <option value="light">Light (1-2x/minggu)</option>
+                <option value="moderate" selected>Moderate (3-4x/minggu)</option>
+                <option value="active">Active (5-6x/minggu)</option>
+                <option value="very_active">Very Active (tiap hari)</option>
+              </select>
+            </div>
+            <div class="cyber-input-group">
+              <label class="cyber-label">GOALS</label>
+              <select class="cyber-input" id="profil-goal">
+                <option value="cutting">🔥 Cutting (Deficit Kalori)</option>
+                <option value="maintain">⚖️ Maintain (Jaga Berat)</option>
+                <option value="bulking">💪 Bulking (Surplus Kalori)</option>
+                <option value="lean_bulk">🎯 Lean Bulk (Surplus Kecil)</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="cyber-btn primary" onclick="submitProfil()">
+            <span class="btn-glitch">▶ HITUNG KEBUTUHAN NUTRISI AI</span>
+          </button>
+        </div>
+
+        <div class="ai-loading hidden" id="profil-loading">
+          <div class="loading-spinner"></div>
+          <p class="loading-text">AI SEDANG MENGHITUNG KEBUTUHAN NUTRISI...</p>
+        </div>
+
+        <div class="result-panel hidden" id="profil-result">
+          <h3 class="result-title">☰ ANALISIS KEBUTUHAN HARIAN</h3>
+
+          <div class="profil-bmi-card" id="profil-bmi"></div>
+
+          <div class="nutrition-grid" id="profil-nutrition"></div>
+
+          <div class="profil-detail-sections" id="profil-details"></div>
+
+          <div class="ai-summary" id="profil-summary"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- CUSTOM CONFIRM MODAL -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-modal">
+      <div class="confirm-icon">⚠</div>
+      <div class="confirm-title" id="confirmTitle">KONFIRMASI HAPUS</div>
+      <div class="confirm-msg" id="confirmMsg">Yakin ingin menghapus data ini?</div>
+      <div class="confirm-actions">
+        <button class="confirm-btn cancel" id="confirmCancel">BATAL</button>
+        <button class="confirm-btn ok" id="confirmOk">YA, HAPUS</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- SCRIPTS -->
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/bodyscan.js"></script>
+  <script src="js/profil.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+# Dependensi
+node_modules/
+
+# Database Lokal (SQLite)
+*.db
+*.db-shm
+*.db-wal
+
+# File Rahasia (JANGAN DI-UPLOAD!)
+.env
+serviceAccountKey.json
+
+# Folder Upload Gambar
+public/uploads/
+uploads/
+
+# OS Files
+.DS_Store
+Thumbs.db
