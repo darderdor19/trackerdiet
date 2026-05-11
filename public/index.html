@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="LebihFit Tracker - Cyberpunk AI-Powered Fitness & Nutrition Tracker">
+
   <title>LEBIHFIT TRACKER // CYBERPUNK</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -14,45 +15,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 </head>
 <body class="cyber-theme">
-  <!-- AUTH OVERLAY -->
-  <div id="auth-overlay" class="auth-overlay">
-    <div class="auth-card">
-      <div class="glitch-wrapper">
-        <h1 class="cyber-title large" data-text="LEBIHFIT ACCESS">LEBIHFIT ACCESS</h1>
-      </div>
-      
-      <!-- Step 1: Email Input -->
-      <div id="auth-step-email" class="auth-step">
-        <p class="auth-subtitle">IDENTIFIKASI DIRI LU, CYBER-ATHLETE</p>
-        <div class="cyber-input-group">
-          <label class="cyber-label">EMAIL</label>
-          <input type="email" id="login-email" class="cyber-input" placeholder="user@cyber.fit">
-        </div>
-        <button class="cyber-btn primary full" onclick="sendOTP()">KIRIM KODE VERIFIKASI</button>
-      </div>
-
-      <!-- Step 2: OTP Input -->
-      <div id="auth-step-otp" class="auth-step hidden">
-        <p class="auth-subtitle">KODE TELAH DIKIRIM KE EMAIL LU</p>
-        <div class="otp-container">
-          <input type="text" maxlength="1" class="otp-input" id="otp-1" onkeyup="moveFocus(this, 'otp-2')">
-          <input type="text" id="otp-2" maxlength="1" class="otp-input" onkeyup="moveFocus(this, 'otp-3')">
-          <input type="text" id="otp-3" maxlength="1" class="otp-input" onkeyup="moveFocus(this, 'otp-4')">
-          <input type="text" id="otp-4" maxlength="1" class="otp-input" onkeyup="moveFocus(this, 'otp-5')">
-          <input type="text" id="otp-5" maxlength="1" class="otp-input" onkeyup="moveFocus(this, 'otp-6')">
-          <input type="text" id="otp-6" maxlength="1" class="otp-input">
-        </div>
-        <button class="cyber-btn primary full" onclick="verifyOTPAndLogin()">VERIFIKASI & AKSES</button>
-        <button class="cyber-btn secondary small" style="margin-top:1rem;" onclick="backToEmail()">GANTI EMAIL</button>
-      </div>
-
-      <div id="auth-loading" class="auth-loading hidden">
-        <div class="scanner"></div>
-        <p>MEMPROSES DATA...</p>
-      </div>
-    </div>
-  </div>
-
   <!-- SCAN LINE OVERLAY -->
   <div class="scanline"></div>
 
@@ -65,7 +27,7 @@
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <!-- APP LAYOUT -->
-  <div class="app-layout hidden" id="app-content">
+  <div class="app-layout" id="app-content">
 
     <!-- LEFT SIDEBAR NAVIGATION -->
     <aside class="cyber-sidebar" id="mainSidebar">
@@ -113,6 +75,7 @@
 
       <!-- ======== DASHBOARD TAB ======== -->
       <section class="tab-content active" id="tab-dashboard">
+
         <div class="section-header">
           <h1 class="cyber-title">SYSTEM <span class="highlight">DASHBOARD</span></h1>
           <div class="period-selector">

@@ -1,12 +1,9 @@
 // ==================== API BASE ====================
 const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3001' : '';
 
-// Helper to get Firebase Token
+// Helper (Disabled for Private Mode)
 async function getAuthHeaders(isJson = true) {
-  const user = firebase.auth().currentUser;
-  if (!user) return {};
-  const token = await user.getIdToken();
-  const headers = { 'Authorization': `Bearer ${token}` };
+  const headers = {};
   if (isJson) headers['Content-Type'] = 'application/json';
   return headers;
 }
